@@ -5,6 +5,7 @@ import {
   Inject,
   Res,
   Get,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -12,9 +13,10 @@ import { UserService } from './user.service';
 /* dto */
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { JwtPayloadDto } from './dto/payload.dto';
 
 import { JwtService } from '@nestjs/jwt';
-import { LoginGuard } from 'src/guard/login.guard';
+import { AuthGuard } from 'src/guard/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -35,14 +37,17 @@ export class UserController {
     @Body() user: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const foundUser: LoginDto = await this.userService.login(user);
+    const foundUser: JwtPayloadDto = await this.userService.login(user);
 
     if (foundUser) {
+      // 构造JWT的payload
+      const payload: JwtPayloadDto = {
+        username: foundUser.username,
+        nick_name: foundUser.nick_name, // 如果存在的话
+        role: foundUser.role, // 假设用户实体中有一个role字段
+      };
       const token = await this.jwtService.signAsync({
-        user: {
-          // id: foundUser.id,
-          username: foundUser.username,
-        },
+        payload,
       });
       res.setHeader('authorization', 'bearer ' + token);
 
@@ -52,8 +57,32 @@ export class UserController {
     }
   }
 
+  /* 用户修改个人信息 */
+  @Put('updateUserInfo')
+  updateUserInfo() {
+    return 'updateUserInfo';
+  }
+
+  /* 修改密码 */
+  @Put('/updatePassword')
+  updatePassword() {
+    return 'updatePassword';
+  }
+
+  /* 管理员修改用户角色 */
+  @Put('adminUpdateRole/:id/:role')
+  updateRole() {
+    return 'updateRole';
+  }
+
+  /* 管理员修改用户信息 */
+  @Put('adminUpdateUserInfo/:id')
+  adminUpdateUserInfo() {
+    return 'updateUserInfo';
+  }
+
   @Get('getUserInfo')
-  @UseGuards(LoginGuard)
+  @UseGuards(AuthGuard)
   getUserInfo() {
     return 'userinfo';
   }

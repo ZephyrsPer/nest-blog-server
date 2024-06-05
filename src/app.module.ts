@@ -31,9 +31,10 @@ import { InfoModule } from './modules/info/info.module';
     }),
     JwtModule.register({
       global: true,
-      secret: 'xiumubai',
+      secret: process.env?.JWT_SECRET,
       signOptions: {
-        expiresIn: '1d',
+        expiresIn: process.env?.JWT_EXPIRES_IN,
+        algorithm: 'HS256', // 加密算法，这里使用的是 HS256
       },
     }),
     DemoModule,

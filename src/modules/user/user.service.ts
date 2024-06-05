@@ -25,6 +25,7 @@ export class UserService {
 
   /* 注册 */
   async register(user: RegisterDto) {
+    console.log(user);
     const foundUser = await this.userRepository.findOneBy({
       username: user.username,
     });
