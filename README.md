@@ -11,3 +11,7 @@
 [实现用户注册登录](./docs/User/注册与登录.md)
 
 [中间件与守卫](./docs/guard与中间件.md)
+
+[管道的使用](./docs/管道的使用.md)
+
+[Swagger在线接口文档](https://juejin.cn/post/7351612144527835177?share_token=3ca8025b-1350-4875-b799-0d5b8727c452)

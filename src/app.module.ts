@@ -6,7 +6,6 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { DemoModule } from './demo/demo.module';
 import { UserModule } from './modules/user/user.module';
 import { InfoModule } from './modules/info/info.module';
 
@@ -37,7 +36,6 @@ import { InfoModule } from './modules/info/info.module';
         algorithm: 'HS256', // 加密算法，这里使用的是 HS256
       },
     }),
-    DemoModule,
     UserModule,
     InfoModule,
   ],
