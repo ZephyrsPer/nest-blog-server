@@ -1,8 +1,8 @@
 import {
   Controller,
   Body,
-  Post,
   Res,
+  Post,
   Get,
   Put,
   UseGuards,
@@ -32,8 +32,19 @@ export class UserController {
   // @ApiOperation({ summary: '注册' })
   @Post('register')
   @UsePipes(new ValidationPipe())
-  async register(@Body() UserDto: RegisterDto) {
-    return await this.userService.register(UserDto);
+  async register(@Body() UserDto: RegisterDto, @Res() res: Response) {
+    try {
+      await this.userService.register(UserDto);
+      return res.status(HttpStatus.OK).json({
+        statusCode: HttpStatus.OK,
+        message: '成功注册',
+      });
+    } catch (error) {
+      return res.status(HttpStatus.OK).json({
+        statusCode: error.status,
+        message: error.message,
+      });
+    }
   }
 
   /* 登录 */
@@ -41,22 +52,26 @@ export class UserController {
   @Post('login')
   @UsePipes(new ValidationPipe())
   async login(
-    @Body() UserDto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+    @Body() userDto: LoginDto,
+    @Res() res: Response,
+  ): Promise<{ message: string; token: string } | any> {
     try {
-      const payload = await this.userService.login(UserDto);
+      const payload = await this.userService.login(userDto);
       const token = await this.userService.generateJwt(payload);
 
-      res.setHeader('Authorization', 'Bearer ' + token);
-      return res
-        .status(HttpStatus.OK)
-        .json({ message: 'Login success', token });
+      return res.status(HttpStatus.OK).json({
+        statusCode: HttpStatus.OK,
+        message: 'Login success',
+        token: 'Bearer ' + token,
+      });
     } catch (error) {
-      return res.status(error.getStatus()).json({ message: error.message });
+      // 确保你的错误对象有一个合适的状态码和消息，否则你可能需要在这里进行转换
+      return res.status(HttpStatus.OK).json({
+        statusCode: error.status,
+        message: error.message,
+      });
     }
   }
-
   /* 用户修改个人信息 */
   @Put('updateUserInfo')
   updateUserInfo() {
