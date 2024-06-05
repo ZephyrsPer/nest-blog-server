@@ -18,13 +18,7 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtPayloadDto } from './dto/payload.dto';
 
 /* utils */
-import * as crypto from 'crypto';
-
-function md5(str) {
-  const hash = crypto.createHash('md5');
-  hash.update(str);
-  return hash.digest('hex');
-}
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -35,45 +29,65 @@ export class UserService {
   @Inject(JwtService)
   private jwtService: JwtService;
 
-  /* 注册 */
-  async register(user: RegisterDto) {
-    console.log(user);
-    const foundUser = await this.userRepository.findOneBy({
-      username: user.username,
-    });
-
-    /**
-     * 校验用户是否已存在
-     */
-    if (foundUser) {
-      throw new HttpException('用户已存在', 200);
-    }
-
-    const newUser = new User();
-    newUser.username = user.username;
-    newUser.password = md5(user.password);
-
-    try {
-      await this.userRepository.save(newUser);
-      this.logger.log('注册成功', UserService);
-      return '注册成功';
-    } catch (e) {
-      this.logger.error(e, UserService);
-      return '注册失败';
-    }
+  /* 用来hash密码 */
+  private hashPassword(password: string): string {
+    return bcrypt.hash(password, 10); // 10 是默认的 salt rounds
   }
 
-  /* 登录 */
+  // 私有方法，用于比较哈希密码
+  private async comparePasswords(
+    hashedPassword: string,
+    password: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(password, hashedPassword);
+  }
+
   /* 验证是否存在用户，判断密码是否正确 */
-  async validateUser(username: string, password: string): Promise<User | null> {
+  private async validateUser(
+    username: string,
+    password: string,
+  ): Promise<User | null> {
     const foundUser = await this.userRepository.findOneBy({
       username: username,
     });
-    if (!foundUser || foundUser.password !== md5(password)) {
+    if (
+      !foundUser ||
+      !(await this.comparePasswords(foundUser.password, password))
+    ) {
       return null;
     }
     return foundUser;
   }
+
+  /* 注册 */
+  async register(userDto: RegisterDto) {
+    // 查找是否已存在具有相同用户名的用户
+    const foundUser = await this.userRepository.findOneBy({
+      username: userDto.username,
+    });
+
+    // 校验用户是否已存在
+    if (foundUser) {
+      throw new HttpException('用户已存在', HttpStatus.BAD_REQUEST);
+    }
+
+    // 创建新用户并设置其属性
+    const newUser = new User();
+    newUser.username = userDto.username;
+    newUser.password = await this.hashPassword(userDto.password); // 使用 bcrypt 加密密码
+
+    try {
+      // 保存新用户
+      await this.userRepository.save(newUser);
+      this.logger.log('注册成功', 'UserService'); // 注意：需要确保 this.logger 被正确定义和注入
+      return { status: 'success', message: '注册成功' }; // 返回更详细的响应
+    } catch (e) {
+      this.logger.error(e, 'UserService'); // 注意：需要确保 this.logger 被正确定义和注入
+      throw new HttpException('注册失败', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* 登录 */
   /* 登录返回用户信息 */
   async login(userDto: LoginDto): Promise<JwtPayloadDto> {
     const user = await this.validateUser(userDto.username, userDto.password);
@@ -94,17 +108,4 @@ export class UserService {
   async generateJwt(payload: JwtPayloadDto): Promise<string> {
     return await this.jwtService.signAsync(payload);
   }
-
-  /*   async login(user: LoginDto) {
-    const foundUser = await this.userRepository.findOneBy({
-      username: user.username,
-    });
-    if (!foundUser) {
-      throw new HttpException('用户名不存在', 200);
-    }
-    if (foundUser.password !== md5(user.password)) {
-      throw new HttpException('密码错误', 200);
-    }
-    return foundUser;
-  } */
 }
