@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createReadStream } from 'fs';
+import * as fs from 'fs';
 
 import * as qiniu from 'qiniu';
 @Injectable()
@@ -47,8 +47,14 @@ export class UpLoadService {
     const ak = this.configService.get<string>('ACCESSKEY');
     const sk = this.configService.get<string>('SECRETKEY');
     const bucket = this.configService.get<string>('BUCKET');
-    const reader = createReadStream(`./uploads/${fileName}`);
-
+    const reader = fs.createReadStream(`./uploads/${fileName}`);
+    // 但是，更好的做法是在删除文件之前确保流已经被关闭或完成读取
+    // 你可以通过监听 'close' 或 'end' 事件来做到这一点
+    reader.on('close', () => {
+      // 在这里安全地删除文件
+      fs.unlinkSync(`./uploads/${fileName}`);
+      // console.log('文件已删除');
+    });
     return await this.qiniuUpload(ak, sk, bucket, reader, fileName);
   }
 }
