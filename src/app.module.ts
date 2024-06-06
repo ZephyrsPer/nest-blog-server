@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { InfoModule } from './modules/info/info.module';
+import { UpLoadModule } from './modules/up-load/up-load.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { InfoModule } from './modules/info/info.module';
     }),
     UserModule,
     InfoModule,
+    UpLoadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

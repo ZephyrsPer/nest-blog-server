@@ -32,9 +32,9 @@ export class UserController {
   // @ApiOperation({ summary: '注册' })
   @Post('register')
   @UsePipes(new ValidationPipe())
-  async register(@Body() UserDto: RegisterDto, @Res() res: Response) {
+  async register(@Body() userDto: RegisterDto, @Res() res: Response) {
     try {
-      await this.userService.register(UserDto);
+      await this.userService.register(userDto);
       return res.status(HttpStatus.OK).json({
         statusCode: HttpStatus.OK,
         message: '成功注册',

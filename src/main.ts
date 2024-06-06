@@ -1,9 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config'; // 如果你使用 @nestjs/config
+
+import { NestExpressApplication } from '@nestjs/platform-express';
 // import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // 配置 uploads 文件夹为静态目录，以达到可直接访问下面文件的目的
+  app.useStaticAssets('./uploads', {
+    prefix: '/api/uploads/',
+  });
+  // app.enableCors();
   /* 
   const options = new DocumentBuilder()
     .setTitle('Blog-Server') // 标题
