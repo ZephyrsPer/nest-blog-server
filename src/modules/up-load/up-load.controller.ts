@@ -29,7 +29,7 @@ export class UpLoadController {
   )
   uploadFile(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
     return res.status(HttpStatus.OK).json({
-      data: file,
+      data: file /* ?.mimetype */, //,
     });
   }
 }
