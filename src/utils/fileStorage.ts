@@ -1,13 +1,14 @@
 import { diskStorage } from 'multer';
 // import * as path from 'path';
 
-// console.log(__dirname);
-
 export const fileStorage = diskStorage({
   // console.log(__dirname);
 
   // destination: path.join(__dirname, '/uploads'),
-  destination: './uploads',
+  // destination: './uploads',
+  destination: (req, file, cb) => {
+    cb(null, './uploads');
+  },
   // 自定义上传的文件名字
   filename: (req, file, cb) => {
     const singFileArray = file.originalname.split('.');
